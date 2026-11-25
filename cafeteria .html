@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flujograma – Cafetería Universitaria (código unificado)</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #0a0e1a;
+  --surface: #111827;
+  --surf2:   #0f1724;
+  --border:  #1e2d45;
+  --border2: #253650;
+  --accent:  #f97316;
+  --blue:    #38bdf8;
+  --purple:  #a78bfa;
+  --green:   #34d399;
+  --red:     #f87171;
+  --yellow:  #fbbf24;
+  --text:    #e2e8f0;
+  --muted:   #64748b;
+  --line:    #1e3a5f;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Syne',sans-serif;
+  padding:48px 24px 100px;
+  background-image:
+    radial-gradient(ellipse at 15% 0%,   rgba(56,189,248,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 100%, rgba(249,115,22,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%,  rgba(167,139,250,0.04) 0%, transparent 70%);
+}
+
+/* ═══════════ HEADER ═══════════ */
+header{text-align:center;margin-bottom:56px;animation:fadeDown .8s ease both;}
+.tag{
+  display:inline-block;
+  font-family:'Space Mono',monospace;
+  font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--blue);border:1px solid rgba(56,189,248,0.4);
+  padding:5px 16px;border-radius:3px;margin-bottom:18px;
+  background:rgba(56,189,248,0.06);
+}
+header h1{font-size:clamp(26px,5vw,50px);font-weight:800;line-height:1.1;letter-spacing:-1px;}
+header h1 span{color:var(--accent);}
+header p{color:var(--muted);font-size:13px;margin-top:10px;font-family:'Space Mono',monospace;}
+
+/* ═══════════ LEYENDA ═══════════ */
+.legend{
+  display:flex;justify-content:center;gap:20px;flex-wrap:wrap;
+  margin-bottom:52px;animation:fadeDown .8s .15s ease both;
+}
+.leg{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;}
+.leg-shape{width:26px;height:16px;border:1.5px solid;border-radius:3px;flex-shrink:0;}
+.ls-oval{border-color:var(--green);border-radius:999px;background:rgba(52,211,153,0.1);}
+.ls-rect{border-color:var(--border2);background:var(--surface);}
+.ls-para{border-color:var(--purple);background:rgba(167,139,250,0.1);transform:skewX(-12deg);}
+.ls-diamond{border-color:var(--yellow);background:rgba(251,191,36,0.1);transform:rotate(45deg);width:14px;height:14px;}
+.ls-file{border-color:var(--purple);border-style:dashed;background:rgba(167,139,250,0.06);}
+
+/* ═══════════ CANVAS ═══════════ */
+.canvas{max-width:880px;margin:0 auto;}
+
+/* ═══════════ SECTION LABEL ═══════════ */
+.sec{
+  text-align:center;
+  font-family:'Space Mono',monospace;
+  font-size:9px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--muted);margin:6px 0 2px;opacity:.6;
+}
+.sec-line{display:flex;align-items:center;gap:12px;margin:24px 0 4px;}
+.sec-line::before,.sec-line::after{content:'';flex:1;height:1px;background:var(--border);}
+.sec-text{
+  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--muted);white-space:nowrap;
+}
+
+/* ═══════════ FLOW COLUMN ═══════════ */
+.flow{display:flex;flex-direction:column;align-items:center;}
+
+/* ═══════════ ARROW ═══════════ */
+.arr{width:2px;background:var(--line);position:relative;z-index:1;}
+.arr::after{
+  content:'';position:absolute;bottom:-1px;left:50%;
+  transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:var(--blue);
+}
+.arr.h20{height:20px;} .arr.h28{height:28px;} .arr.h36{height:36px;} .arr.h48{height:48px;}
+.arr.green::after{border-top-color:var(--green);} .arr.green{background:rgba(52,211,153,.4);}
+.arr.red::after  {border-top-color:var(--red);}   .arr.red  {background:rgba(248,113,113,.4);}
+.arr.orange::after{border-top-color:var(--accent);}.arr.orange{background:rgba(249,115,22,.4);}
+
+/* ═══════════ TERMINAL (óvalo) ═══════════ */
+.terminal{
+  padding:15px 48px;border-radius:999px;
+  font-size:15px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+  display:inline-flex;align-items:center;gap:10px;
+  position:relative;z-index:2;
+}
+.t-start{background:var(--green);color:#041a0e;box-shadow:0 0 32px rgba(52,211,153,.35);}
+.t-end  {background:var(--red);  color:#1a0404;box-shadow:0 0 32px rgba(248,113,113,.35);}
+
+/* ═══════════ PROCESO (rectángulo) ═══════════ */
+.proc{
+  background:var(--surface);
+  border:1.5px solid var(--border);
+  border-radius:8px;padding:13px 24px;
+  font-size:13px;font-weight:600;text-align:center;
+  min-width:300px;max-width:520px;width:100%;
+  position:relative;z-index:2;
+  transition:border-color .2s,box-shadow .2s;
+  line-height:1.5;
+}
+.proc:hover{border-color:var(--blue);box-shadow:0 0 18px rgba(56,189,248,.12);}
+.proc small{display:block;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;font-weight:400;}
+
+/* accent variants */
+.proc.a-green {border-color:rgba(52,211,153,.5); background:rgba(52,211,153,.06); color:var(--green);}
+.proc.a-red   {border-color:rgba(248,113,113,.5);background:rgba(248,113,113,.06);color:var(--red);}
+.proc.a-blue  {border-color:rgba(56,189,248,.5); background:rgba(56,189,248,.06); color:var(--blue);}
+.proc.a-orange{border-color:rgba(249,115,22,.5); background:rgba(249,115,22,.06); color:var(--accent);}
+.proc.a-purple{border-color:rgba(167,139,250,.5);background:rgba(167,139,250,.06);color:var(--purple);}
+.proc.a-yellow{border-color:rgba(251,191,36,.5); background:rgba(251,191,36,.06); color:var(--yellow);}
+
+/* ═══════════ IO (paralelogramo SVG) ═══════════ */
+.io-wrap{position:relative;z-index:2;width:100%;display:flex;justify-content:center;}
+.io-wrap svg{overflow:visible;}
+
+/* ═══════════ DECISIÓN (SVG rombo) ═══════════ */
+.diamond-wrap{position:relative;z-index:2;width:100%;display:flex;justify-content:center;}
+
+/* ═══════════ ARCHIVO ═══════════ */
+.file-box{
+  border:1.5px dashed var(--purple);border-radius:8px;
+  background:rgba(167,139,250,.07);
+  padding:14px 28px;text-align:center;
+  max-width:440px;width:100%;position:relative;z-index:2;
+}
+.file-box .fi{font-size:24px;margin-bottom:4px;}
+.file-box p{font-size:13px;font-weight:600;color:#c4b5fd;}
+.file-box small{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);display:block;margin-top:4px;line-height:1.6;}
+
+/* ═══════════ BRANCH (bifurcación) ═══════════ */
+.branch{
+  display:flex;width:100%;justify-content:center;align-items:flex-start;
+  position:relative;
+}
+.branch-col{display:flex;flex-direction:column;align-items:center;flex:1;max-width:240px;}
+.blabel{
+  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;
+  text-transform:uppercase;padding:2px 10px;border-radius:3px;margin-bottom:4px;
+}
+.blabel.yes{background:rgba(52,211,153,.15);color:var(--green);}
+.blabel.no {background:rgba(248,113,113,.15);color:var(--red);}
+
+/* ═══════════ MENÚ GRID (6 opciones) ═══════════ */
+.menu-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  width:100%;max-width:660px;position:relative;z-index:2;
+}
+.menu-opt{
+  border-radius:8px;padding:13px 14px;text-align:center;
+  font-size:12px;font-weight:700;border:1.5px solid;
+  line-height:1.4;
+}
+.menu-opt small{display:block;font-weight:400;font-size:10px;margin-top:3px;opacity:.7;font-family:'Space Mono',monospace;}
+.mo1{border-color:rgba(56,189,248,.4);background:rgba(56,189,248,.07);color:var(--blue);}
+.mo2{border-color:rgba(249,115,22,.4);background:rgba(249,115,22,.07);color:var(--accent);}
+.mo3{border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.07);color:var(--green);}
+.mo4{border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.07);color:var(--yellow);}
+.mo5{border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.07);color:var(--purple);}
+.mo6{border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.07);color:var(--red);}
+
+/* ═══════════ RESUMEN / TABLA ═══════════ */
+.summary{
+  background:rgba(52,211,153,.06);border:1.5px solid rgba(52,211,153,.3);
+  border-radius:10px;padding:18px 28px;max-width:420px;width:100%;position:relative;z-index:2;
+}
+.summary h4{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--green);margin-bottom:12px;}
+.srow{display:flex;justify-content:space-between;align-items:center;
+  font-size:12px;padding:5px 0;border-bottom:1px solid rgba(52,211,153,.1);}
+.srow:last-child{border:none;font-weight:800;color:var(--green);font-size:13px;margin-top:4px;}
+.srow span:last-child{font-family:'Space Mono',monospace;}
+
+/* ═══════════ CATÁLOGO ═══════════ */
+.catalog{
+  width:100%;max-width:760px;background:var(--surface);
+  border:1.5px solid var(--border);border-radius:12px;
+  padding:22px;position:relative;z-index:2;
+}
+.catalog h3{
+  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--blue);text-align:center;margin-bottom:16px;
+}
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.cat-item{
+  background:rgba(255,255,255,.03);border:1px solid var(--border);
+  border-radius:8px;padding:10px 8px;text-align:center;
+  transition:border-color .2s,transform .2s;cursor:default;
+}
+.cat-item:hover{border-color:var(--accent);transform:translateY(-2px);}
+.cat-item .ic{font-size:20px;margin-bottom:4px;}
+.cat-item .nm{font-size:11px;font-weight:700;display:block;}
+.cat-item .pr{color:var(--green);font-family:'Space Mono',monospace;font-size:10px;display:block;margin-top:2px;}
+.cat-item .st{color:var(--muted);font-family:'Space Mono',monospace;font-size:9px;display:block;}
+
+.conn-wrap{display:flex;align-items:center;gap:12px;position:relative;z-index:2;}
+.conn{width:38px;height:38px;border-radius:50%;border:2px solid var(--accent);background:rgba(249,115,22,.12);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;}
+.conn-wrap span{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);max-width:260px;}
+.ls-conn{border-color:var(--accent);border-radius:50%;width:18px;height:18px;background:rgba(249,115,22,.12);}
+/* ═══════════ ANIMATIONS ═══════════ */
+@keyframes fadeDown{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:none}}
+@keyframes fadeUp  {from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none}}
+.flow > *{animation:fadeUp .4s ease both;}
+.flow > *:nth-child(1){animation-delay:.05s} .flow > *:nth-child(2){animation-delay:.08s}
+.flow > *:nth-child(3){animation-delay:.11s} .flow > *:nth-child(4){animation-delay:.14s}
+.flow > *:nth-child(5){animation-delay:.17s} .flow > *:nth-child(6){animation-delay:.20s}
+.flow > *:nth-child(7){animation-delay:.23s} .flow > *:nth-child(8){animation-delay:.26s}
+
+/* ═══════════ HELPERS ═══════════ */
+.center{display:flex;justify-content:center;}
+.w100{width:100%;}
+</style>
+</head>
+<body>
+<header>
+  <div class="tag">Fundamentos de Programación · Proyecto Final</div>
+  <h1>Sistema de <span>Cafetería</span> Universitaria</h1>
+  <p>Restaurante + Cafetería en un solo programa · roles Cliente / Empleado · IVA 13%</p>
+</header>
+<div class="legend">
+  <div class="leg"><div class="leg-shape ls-oval"></div>Inicio / Fin</div>
+  <div class="leg"><div class="leg-shape ls-rect"></div>Proceso</div>
+  <div class="leg"><div class="leg-shape ls-para"></div>Entrada / Salida</div>
+  <div class="leg"><div class="leg-shape ls-diamond"></div>Decisión</div>
+  <div class="leg"><div class="leg-shape ls-file"></div>Archivo</div>
+</div>
+<div class="canvas"><div class="flow">
+<div class="sec-line"><span class="sec-text">inicialización</span></div>
+<div class="terminal t-start">▶&nbsp; INICIO</div>
+<div class="arr h36 "></div>
+<div class="proc ">🗃️ Declarar arreglos y constantes<small>NUM_PRODUCTOS = 20 · MAX_CARRITO = 50 · PIN_EMPLEADO = 2007<br>nombres[20] · precios[20] · stock[20] · carritoProd[ ] · carritoCant[ ] · unidadesVendidas[ ]</small></div>
+<div class="arr h28 "></div>
+<div class="proc ">🔢 Inicializar contadores<small>ventasTotalesDia = 0.0 · totalTransacciones = 0 · numeroTicket = 100</small></div>
+<div class="arr h28 "></div>
+<div class="io-wrap"><svg width="628" height="54" viewBox="0 0 628 54"><polygon points="24,2 628,2 604,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="314.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">🖥️ Mostrar encabezado: SISTEMA DE RESTAURANTE Y CAFETERIA UNIVERSITARIA</text></svg></div>
+<div class="arr h36 "></div>
+<div class="catalog"><h3>📋 Catálogo unificado (nombres[ ] · precios[ ] · stock[ ])</h3><div class="cat-grid">
+<div style="grid-column:1/-1;font-family:Space Mono,monospace;font-size:10px;color:var(--accent);margin-top:8px;letter-spacing:1px">🍽️ MENÚ PARA ORDENAR (platillos 1–5)</div>
+<div class="cat-item"><div class="ic">🍔</div><span class="nm">Hamburguesa</span><span class="pr">$3.50</span><span class="st">stock: 20</span></div>
+<div class="cat-item"><div class="ic">🍕</div><span class="nm">Pizza</span><span class="pr">$5.00</span><span class="st">stock: 10</span></div>
+<div class="cat-item"><div class="ic">🌭</div><span class="nm">Hot Dog</span><span class="pr">$2.50</span><span class="st">stock: 25</span></div>
+<div class="cat-item"><div class="ic">🫓</div><span class="nm">Pupusas</span><span class="pr">$1.00</span><span class="st">stock: 40</span></div>
+<div class="cat-item"><div class="ic">🥪</div><span class="nm">Panini de pollo</span><span class="pr">$4.50</span><span class="st">stock: 18</span></div>
+<div style="grid-column:1/-1;font-family:Space Mono,monospace;font-size:10px;color:var(--accent);margin-top:8px;letter-spacing:1px">🍟 ENTRADAS (6–8)</div>
+<div class="cat-item"><div class="ic">🍟</div><span class="nm">Papas fritas</span><span class="pr">$1.50</span><span class="st">stock: 25</span></div>
+<div class="cat-item"><div class="ic">🥗</div><span class="nm">Ensalada</span><span class="pr">$2.00</span><span class="st">stock: 25</span></div>
+<div class="cat-item"><div class="ic">🍞</div><span class="nm">Pan con ajo</span><span class="pr">$1.00</span><span class="st">stock: 30</span></div>
+<div style="grid-column:1/-1;font-family:Space Mono,monospace;font-size:10px;color:var(--accent);margin-top:8px;letter-spacing:1px">🥤 BEBIDAS (9–16)</div>
+<div class="cat-item"><div class="ic">💧</div><span class="nm">Agua</span><span class="pr">$1.00</span><span class="st">stock: 50</span></div>
+<div class="cat-item"><div class="ic">🥤</div><span class="nm">Refresco</span><span class="pr">$2.00</span><span class="st">stock: 40</span></div>
+<div class="cat-item"><div class="ic">🧃</div><span class="nm">Jugo</span><span class="pr">$2.50</span><span class="st">stock: 30</span></div>
+<div class="cat-item"><div class="ic">🥫</div><span class="nm">Coca-Cola</span><span class="pr">$1.00</span><span class="st">stock: 40</span></div>
+<div class="cat-item"><div class="ic">🍵</div><span class="nm">Té frío</span><span class="pr">$1.00</span><span class="st">stock: 30</span></div>
+<div class="cat-item"><div class="ic">☕</div><span class="nm">Café</span><span class="pr">$1.50</span><span class="st">stock: 50</span></div>
+<div class="cat-item"><div class="ic">🧊</div><span class="nm">Frozen</span><span class="pr">$2.50</span><span class="st">stock: 25</span></div>
+<div class="cat-item"><div class="ic">🥛</div><span class="nm">Licuado</span><span class="pr">$2.00</span><span class="st">stock: 25</span></div>
+<div style="grid-column:1/-1;font-family:Space Mono,monospace;font-size:10px;color:var(--accent);margin-top:8px;letter-spacing:1px">🍰 POSTRES (17–20)</div>
+<div class="cat-item"><div class="ic">🍰</div><span class="nm">Pastel</span><span class="pr">$3.00</span><span class="st">stock: 12</span></div>
+<div class="cat-item"><div class="ic">🍨</div><span class="nm">Helado</span><span class="pr">$2.00</span><span class="st">stock: 20</span></div>
+<div class="cat-item"><div class="ic">🍫</div><span class="nm">Brownie</span><span class="pr">$1.50</span><span class="st">stock: 20</span></div>
+<div class="cat-item"><div class="ic">🍪</div><span class="nm">Galletas</span><span class="pr">$1.00</span><span class="st">stock: 30</span></div>
+</div></div>
+<div class="arr h48 "></div>
+<div class="sec-line"><span class="sec-text">selección de rol — ciclo while(true)</span></div>
+<div class="io-wrap"><svg width="620" height="54" viewBox="0 0 620 54"><polygon points="24,2 620,2 596,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="310.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">🖥️ Mostrar menú: 1. Cliente · 2. Empleado · 3. Salir y generar reporte</text></svg></div>
+<div class="arr h28 "></div>
+<div class="io-wrap"><svg width="300" height="54" viewBox="0 0 300 54"><polygon points="24,2 300,2 276,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="150.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">⌨️ Leer rol (leerEntero 1 – 3)</text></svg></div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="340" height="124" viewBox="0 0 340 124"><polygon points="170.0,4 336,62 170.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="170.0" y="56" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿Rol válido?</text><text x="170.0" y="76" text-anchor="middle" dominant-baseline="central" fill="#b45309" font-family="'Space Mono',monospace" font-size="10">1 ≤ rol ≤ 3</text></svg></div>
+<div class="branch">
+<div class="branch-col" style="align-items:flex-end;padding-right:50px">
+<div class="blabel no">NO</div>
+<div class="arr h28 red"></div>
+<div class="proc a-red" style="max-width:190px;font-size:12px;padding:10px 16px">⚠️ Mostrar "Opción inválida."</div>
+<div class="arr h20 red"></div>
+<div class="proc " style="max-width:190px;font-size:12px;padding:10px 16px">↩️ Volver a leer el rol</div>
+</div>
+<div class="branch-col" style="align-items:flex-start;padding-left:50px">
+<div class="blabel yes">SÍ</div>
+<div class="arr h28 green"></div>
+<div class="proc a-green" style="max-width:190px;font-size:12px;padding:10px 16px">Continuar</div>
+</div>
+</div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="340" height="124" viewBox="0 0 340 124"><polygon points="170.0,4 336,62 170.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="170.0" y="56" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿rol == 3?</text><text x="170.0" y="76" text-anchor="middle" dominant-baseline="central" fill="#b45309" font-family="'Space Mono',monospace" font-size="10">Salir y generar reporte</text></svg></div>
+<div class="branch">
+<div class="branch-col" style="align-items:flex-end;padding-right:50px">
+<div class="blabel yes">SÍ</div>
+<div class="arr h28 green"></div>
+<div class="conn-wrap"><div class="conn">Z</div><span>Ir al reporte del día (break)</span></div>
+</div>
+<div class="branch-col" style="align-items:flex-start;padding-left:50px">
+<div class="blabel no">NO</div>
+<div class="arr h28 "></div>
+<div class="proc " style="max-width:210px;font-size:12px;padding:10px 16px">Continuar con Cliente o Empleado</div>
+</div>
+</div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="350" height="124" viewBox="0 0 350 124"><polygon points="175.0,4 346,62 175.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="175.0" y="62" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿rol == 2? (Empleado)</text></svg></div>
+<div class="branch">
+<div class="branch-col" style="align-items:flex-end;padding-right:50px">
+<div class="blabel no">NO — CLIENTE (rol 1)</div>
+<div class="arr h28 red"></div>
+<div class="proc a-green" style="max-width:210px;font-size:12px;padding:10px 16px">🧑‍🎓 empleadoActivo = "N/A"<br>tipoVenta = "cliente"</div>
+</div>
+<div class="branch-col" style="align-items:flex-start;padding-left:50px">
+<div class="blabel yes">SÍ — EMPLEADO</div>
+<div class="arr h28 orange"></div>
+<div class="proc a-orange" style="max-width:210px;font-size:12px;padding:10px 16px">🧑‍🍳 Pedir credenciales</div>
+</div>
+</div>
+<div class="arr h36 "></div>
+<div class="sec-line"><span class="sec-text">modo empleado — inicio de sesión</span></div>
+<div class="io-wrap"><svg width="356" height="54" viewBox="0 0 356 54"><polygon points="24,2 356,2 332,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="178.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">⌨️ Ingresar usuario y PIN de empleado</text></svg></div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="340" height="124" viewBox="0 0 340 124"><polygon points="170.0,4 336,62 170.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="170.0" y="56" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿PIN == 2007?</text><text x="170.0" y="76" text-anchor="middle" dominant-baseline="central" fill="#b45309" font-family="'Space Mono',monospace" font-size="10">pin == PIN_EMPLEADO</text></svg></div>
+<div class="branch">
+<div class="branch-col" style="align-items:flex-end;padding-right:50px">
+<div class="blabel no">NO</div>
+<div class="arr h28 red"></div>
+<div class="proc a-red" style="max-width:210px;font-size:12px;padding:10px 16px">⛔ "Credenciales incorrectas. Acceso denegado."</div>
+<div class="arr h20 red"></div>
+<div class="conn-wrap"><div class="conn">R</div><span>continue → volver a selección de rol</span></div>
+</div>
+<div class="branch-col" style="align-items:flex-start;padding-left:50px">
+<div class="blabel yes">SÍ</div>
+<div class="arr h28 green"></div>
+<div class="proc a-green" style="max-width:230px;font-size:12px;padding:10px 16px">✅ empleadoActivo = usuario<br>tipoVenta = "empleado"<small>Mostrar "Sesion iniciada como: usuario"</small></div>
+</div>
+</div>
+<div class="arr h36 "></div>
+<div class="conn-wrap"><div class="conn">P</div><span>Aquí se juntan Cliente y Empleado → inicia el pedido</span></div>
+<div class="arr h28 "></div>
+<div class="sec-line"><span class="sec-text">datos del cliente — restaurante</span></div>
+<div class="io-wrap"><svg width="300" height="54" viewBox="0 0 300 54"><polygon points="24,2 300,2 276,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="150.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">⌨️ Ingresar número de mesa</text></svg></div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="340" height="124" viewBox="0 0 340 124"><polygon points="170.0,4 336,62 170.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="170.0" y="56" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿Mesa válida?</text><text x="170.0" y="76" text-anchor="middle" dominant-baseline="central" fill="#b45309" font-family="'Space Mono',monospace" font-size="10">mesa ≥ 1</text></svg></div>
+<div class="branch">
+<div class="branch-col" style="align-items:flex-end;padding-right:50px">
+<div class="blabel no">NO</div>
+<div class="arr h28 red"></div>
+<div class="proc a-red" style="max-width:200px;font-size:12px;padding:10px 16px">⚠️ "Numero de mesa invalido."</div>
+<div class="arr h20 red"></div>
+<div class="proc " style="max-width:200px;font-size:12px;padding:10px 16px">↩️ Volver a pedir la mesa</div>
+</div>
+<div class="branch-col" style="align-items:flex-start;padding-left:50px">
+<div class="blabel yes">SÍ</div>
+<div class="arr h28 green"></div>
+<div class="proc a-green" style="max-width:200px;font-size:12px;padding:10px 16px">Continuar</div>
+</div>
+</div>
+<div class="arr h28 "></div>
+<div class="io-wrap"><svg width="380" height="54" viewBox="0 0 380 54"><polygon points="24,2 380,2 356,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="190.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">⌨️ Ingresar nombre del cliente (nombre)</text></svg></div>
+<div class="arr h28 "></div>
+<div class="io-wrap"><svg width="440" height="54" viewBox="0 0 440 54"><polygon points="24,2 440,2 416,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="220.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">🖥️ Mostrar "Bienvenido nombre a nuestro restaurante"</text></svg></div>
+<div class="arr h28 "></div>
+<div class="proc ">🛒 itemsCarrito = 0 · cancelarPedido = false<small>otroProducto = 'n'</small></div>
+<div class="arr h36 "></div>
+<div class="sec-line"><span class="sec-text">realizar pedido — ciclo do-while</span></div>
+<div class="io-wrap"><svg width="732" height="54" viewBox="0 0 732 54"><polygon points="24,2 732,2 708,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="366.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">🖥️ Mostrar catálogo: mostrarMenu · mostrarEntradas · mostrarBebidas · mostrarPostres</text></svg></div>
+<div class="arr h28 "></div>
+<div class="io-wrap"><svg width="372" height="54" viewBox="0 0 372 54"><polygon points="24,2 372,2 348,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="186.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">⌨️ Ingresar número de producto (1 – 20)</text></svg></div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="340" height="124" viewBox="0 0 340 124"><polygon points="170.0,4 336,62 170.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="170.0" y="56" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿Producto existe?</text><text x="170.0" y="76" text-anchor="middle" dominant-baseline="central" fill="#b45309" font-family="'Space Mono',monospace" font-size="10">1 ≤ numProd ≤ 20</text></svg></div>
+<div class="branch">
+<div class="branch-col" style="align-items:flex-end;padding-right:50px">
+<div class="blabel no">NO</div>
+<div class="arr h28 red"></div>
+<div class="proc a-red" style="max-width:220px;font-size:12px;padding:10px 16px">⚠️ "Producto no existe. Rango valido: 1 a 20."<br>otroProducto = 's'</div>
+<div class="arr h20 red"></div>
+<div class="proc " style="max-width:200px;font-size:12px;padding:10px 16px">↩️ Repetir ciclo (continue)</div>
+</div>
+<div class="branch-col" style="align-items:flex-start;padding-left:50px">
+<div class="blabel yes">SÍ</div>
+<div class="arr h28 green"></div>
+<div class="proc a-green" style="max-width:200px;font-size:12px;padding:10px 16px">idx = numProd − 1</div>
+<div class="arr h20 "></div>
+<div class="io-wrap"><svg width="280" height="54" viewBox="0 0 280 54"><polygon points="24,2 280,2 256,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="140.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">⌨️ Ingresar cantidad deseada</text></svg></div>
+</div>
+</div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="430" height="124" viewBox="0 0 430 124"><polygon points="215.0,4 426,62 215.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="215.0" y="56" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿Cantidad válida y hay stock?</text><text x="215.0" y="76" text-anchor="middle" dominant-baseline="central" fill="#b45309" font-family="'Space Mono',monospace" font-size="10">cant > 0  y  cant ≤ stock[idx]</text></svg></div>
+<div class="branch">
+<div class="branch-col" style="align-items:flex-end;padding-right:50px">
+<div class="blabel no">NO</div>
+<div class="arr h28 red"></div>
+<div class="proc a-red" style="max-width:240px;font-size:12px;padding:10px 16px">🚫 "Stock insuficiente o cantidad invalida. Disponible: stock[idx]"<br>otroProducto = 's'</div>
+<div class="arr h20 red"></div>
+<div class="proc " style="max-width:200px;font-size:12px;padding:10px 16px">↩️ Repetir ciclo (continue)</div>
+</div>
+<div class="branch-col" style="align-items:flex-start;padding-left:50px">
+<div class="blabel yes">SÍ</div>
+<div class="arr h28 green"></div>
+<div class="proc a-green" style="max-width:200px;font-size:12px;padding:10px 16px">Continuar</div>
+</div>
+</div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="348" height="124" viewBox="0 0 348 124"><polygon points="174.0,4 344,62 174.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="174.0" y="56" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿itemsCarrito < 50?</text><text x="174.0" y="76" text-anchor="middle" dominant-baseline="central" fill="#b45309" font-family="'Space Mono',monospace" font-size="10">itemsCarrito < MAX_CARRITO</text></svg></div>
+<div class="branch">
+<div class="branch-col" style="align-items:flex-end;padding-right:50px">
+<div class="blabel no">NO</div>
+<div class="arr h28 red"></div>
+<div class="proc a-red" style="max-width:200px;font-size:12px;padding:10px 16px">🚫 Mostrar "Carrito lleno."</div>
+<div class="arr h20 red"></div>
+<div class="proc " style="max-width:210px;font-size:12px;padding:10px 16px">⏭️ break → salir del ciclo del pedido</div>
+</div>
+<div class="branch-col" style="align-items:flex-start;padding-left:50px">
+<div class="blabel yes">SÍ</div>
+<div class="arr h28 green"></div>
+<div class="proc a-green" style="max-width:240px;font-size:12px;padding:10px 16px">✅ Agregar al carrito<small>carritoProd[items] = idx<br>carritoCant[items] = cant<br>itemsCarrito++ · stock[idx] −= cant</small></div>
+</div>
+</div>
+<div class="arr h28 "></div>
+<div class="io-wrap"><svg width="360" height="54" viewBox="0 0 360 54"><polygon points="24,2 360,2 336,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="180.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">⌨️ ¿Agregar otro producto? (s / n)</text></svg></div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="370" height="124" viewBox="0 0 370 124"><polygon points="185.0,4 366,62 185.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="185.0" y="56" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿Agregar otro producto?</text><text x="185.0" y="76" text-anchor="middle" dominant-baseline="central" fill="#b45309" font-family="'Space Mono',monospace" font-size="10">otroProducto = s ó S</text></svg></div>
+<div class="branch">
+<div class="branch-col" style="align-items:flex-end;padding-right:50px">
+<div class="blabel yes">SÍ</div>
+<div class="arr h28 green"></div>
+<div class="proc a-blue" style="max-width:200px;font-size:12px;padding:10px 16px">🔄 Repetir ingreso de producto</div>
+</div>
+<div class="branch-col" style="align-items:flex-start;padding-left:50px">
+<div class="blabel no">NO</div>
+<div class="arr h28 "></div>
+<div class="proc " style="max-width:200px;font-size:12px;padding:10px 16px">📊 Continuar con el cálculo</div>
+</div>
+</div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="340" height="124" viewBox="0 0 340 124"><polygon points="170.0,4 336,62 170.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="170.0" y="56" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿itemsCarrito == 0?</text><text x="170.0" y="76" text-anchor="middle" dominant-baseline="central" fill="#b45309" font-family="'Space Mono',monospace" font-size="10">el carrito quedó vacío</text></svg></div>
+<div class="branch">
+<div class="branch-col" style="align-items:flex-end;padding-right:50px">
+<div class="blabel yes">SÍ</div>
+<div class="arr h28 green"></div>
+<div class="proc a-red" style="max-width:210px;font-size:12px;padding:10px 16px">⚠️ "No hay productos en el carrito."</div>
+<div class="arr h20 red"></div>
+<div class="conn-wrap"><div class="conn">R</div><span>continue → volver a selección de rol</span></div>
+</div>
+<div class="branch-col" style="align-items:flex-start;padding-left:50px">
+<div class="blabel no">NO</div>
+<div class="arr h28 "></div>
+<div class="proc " style="max-width:210px;font-size:12px;padding:10px 16px">Continuar al cálculo del total</div>
+</div>
+</div>
+<div class="arr h48 "></div>
+<div class="sec-line"><span class="sec-text">calcular total</span></div>
+<div class="proc a-orange">🔢 Ciclo FOR: calcular subtotal<small>subtotal += precios[carritoProd[i]] × carritoCant[i]</small></div>
+<div class="arr h28 "></div>
+<div class="io-wrap"><svg width="380" height="54" viewBox="0 0 380 54"><polygon points="24,2 380,2 356,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="190.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">⌨️ ¿Es estudiante universitario? (s / n)</text></svg></div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="370" height="124" viewBox="0 0 370 124"><polygon points="185.0,4 366,62 185.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="185.0" y="62" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿Es estudiante? (s ó S)</text></svg></div>
+<div class="branch">
+<div class="branch-col" style="align-items:flex-end;padding-right:50px">
+<div class="blabel yes">SÍ</div>
+<div class="arr h28 green"></div>
+<div class="proc a-green" style="max-width:220px;font-size:12px;padding:10px 16px">🎓 descEstudiante = subtotal × 0.15</div>
+</div>
+<div class="branch-col" style="align-items:flex-start;padding-left:50px">
+<div class="blabel no">NO</div>
+<div class="arr h28 "></div>
+<div class="proc " style="max-width:200px;font-size:12px;padding:10px 16px">💼 descEstudiante = 0.0</div>
+</div>
+</div>
+<div class="arr h28 "></div>
+<div class="proc ">baseDespuesEst = subtotal − descEstudiante</div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="388" height="124" viewBox="0 0 388 124"><polygon points="194.0,4 384,62 194.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="194.0" y="56" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿Subtotal > $200?</text><text x="194.0" y="76" text-anchor="middle" dominant-baseline="central" fill="#b45309" font-family="'Space Mono',monospace" font-size="10">descuento adicional por volumen</text></svg></div>
+<div class="branch">
+<div class="branch-col" style="align-items:flex-end;padding-right:50px">
+<div class="blabel yes">SÍ</div>
+<div class="arr h28 green"></div>
+<div class="proc a-green" style="max-width:230px;font-size:12px;padding:10px 16px">💰 descVolumen = baseDespuesEst × 0.05</div>
+</div>
+<div class="branch-col" style="align-items:flex-start;padding-left:50px">
+<div class="blabel no">NO</div>
+<div class="arr h28 "></div>
+<div class="proc " style="max-width:200px;font-size:12px;padding:10px 16px">descVolumen = 0.0</div>
+</div>
+</div>
+<div class="arr h28 "></div>
+<div class="proc ">📐 Calcular base gravable, IVA 13% y total<small>baseGravable = baseDespuesEst − descVolumen<br>iva = baseGravable × 0.13<br>totalPagar = baseGravable + iva</small></div>
+<div class="arr h28 "></div>
+<div class="io-wrap"><svg width="300" height="54" viewBox="0 0 300 54"><polygon points="24,2 300,2 276,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="150.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">🖥️ Mostrar resumen del pedido</text></svg></div>
+<div class="arr h28 "></div>
+<div class="summary"><h4>🧾 Ejemplo de resumen (Mesa 5 · Ana · estudiante)</h4>
+<div class="srow"><span>Hamburguesa × 2</span><span>$7.00</span></div>
+<div class="srow"><span>Jugo × 1</span><span>$2.50</span></div>
+<div class="srow"><span>Papas fritas × 1</span><span>$1.50</span></div>
+<div class="srow"><span>Subtotal</span><span>$11.00</span></div>
+<div class="srow"><span>Desc. estudiantil (15%)</span><span style="color:var(--green)">–$1.65</span></div>
+<div class="srow"><span>Desc. volumen (&gt; $200)</span><span style="color:var(--green)">–$0.00</span></div>
+<div class="srow"><span>IVA (13%)</span><span style="color:var(--yellow)">+$1.22</span></div>
+<div class="srow"><span>TOTAL A PAGAR</span><span>$10.57</span></div></div>
+<div class="arr h48 "></div>
+<div class="sec-line"><span class="sec-text">confirmación y pago</span></div>
+<div class="io-wrap"><svg width="320" height="54" viewBox="0 0 320 54"><polygon points="24,2 320,2 296,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="160.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">⌨️ ¿Confirmar compra? (s / n)</text></svg></div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="340" height="124" viewBox="0 0 340 124"><polygon points="170.0,4 336,62 170.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="170.0" y="56" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿Confirmar compra?</text><text x="170.0" y="76" text-anchor="middle" dominant-baseline="central" fill="#b45309" font-family="'Space Mono',monospace" font-size="10">confirma = s ó n</text></svg></div>
+<div class="branch">
+<div class="branch-col" style="align-items:flex-end;padding-right:50px">
+<div class="blabel no">NO — Cancelar</div>
+<div class="arr h28 red"></div>
+<div class="proc a-red" style="max-width:240px;font-size:12px;padding:10px 16px">🔄 Restaurar stock<br>stock[carritoProd[i]] += carritoCant[i]<small>cancelarPedido = true<br>"Pedido cancelado. Stock restaurado."</small></div>
+<div class="arr h20 red"></div>
+<div class="conn-wrap"><div class="conn">R</div><span>continue → volver a selección de rol</span></div>
+</div>
+<div class="branch-col" style="align-items:flex-start;padding-left:50px">
+<div class="blabel yes">SÍ — Pagar</div>
+<div class="arr h28 green"></div>
+<div class="proc a-green" style="max-width:210px;font-size:12px;padding:10px 16px">Continuar al método de pago</div>
+</div>
+</div>
+<div class="arr h28 "></div>
+<div class="io-wrap"><svg width="404" height="54" viewBox="0 0 404 54"><polygon points="24,2 404,2 380,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="202.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">⌨️ Método de pago: 1. Efectivo · 2. Tarjeta</text></svg></div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="420" height="124" viewBox="0 0 420 124"><polygon points="210.0,4 416,62 210.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="210.0" y="56" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿Método válido?</text><text x="210.0" y="76" text-anchor="middle" dominant-baseline="central" fill="#b45309" font-family="'Space Mono',monospace" font-size="10">metodoPago = 1 ó 2 (si no, repetir)</text></svg></div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="340" height="124" viewBox="0 0 340 124"><polygon points="170.0,4 336,62 170.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="170.0" y="62" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿Método de pago?</text></svg></div>
+<div class="branch">
+<div class="branch-col" style="align-items:flex-end;padding-right:50px">
+<div class="blabel yes">1 · EFECTIVO</div>
+<div class="arr h28 green"></div>
+<div class="io-wrap"><svg width="300" height="54" viewBox="0 0 300 54"><polygon points="24,2 300,2 276,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="150.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">⌨️ Monto recibido en efectivo</text></svg></div>
+<div class="arr h20 "></div>
+<div class="diamond-wrap"><svg width="370" height="124" viewBox="0 0 370 124"><polygon points="185.0,4 366,62 185.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="185.0" y="62" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿efectivo ≥ totalPagar?</text></svg></div>
+<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--red);margin:4px 0">NO → "Monto insuficiente." y volver a pedir monto</div><div class="arr h20 green"></div>
+<div class="proc a-blue" style="max-width:220px;font-size:12px;padding:10px 16px">cambio = efectivo − totalPagar<small>Mostrar "Cambio: $"</small></div>
+</div>
+<div class="branch-col" style="align-items:flex-start;padding-left:50px">
+<div class="blabel no">2 · TARJETA</div>
+<div class="arr h28 orange"></div>
+<div class="proc a-purple" style="max-width:220px;font-size:12px;padding:10px 16px">💳 Mostrar "Pago con tarjeta aprobado."</div>
+</div>
+</div>
+<div class="arr h36 "></div>
+<div class="sec-line"><span class="sec-text">registrar venta</span></div>
+<div class="proc ">📝 Actualizar contadores de la venta<small>numeroTicket++ · ventasTotalesDia += totalPagar<br>totalTransacciones++ · unidadesVendidas[prod] += cantidad (FOR)</small></div>
+<div class="arr h28 "></div>
+<div class="file-box"><div class="fi">📄</div><p>Agregar registro en <strong>ventas.txt</strong> (modo append)</p><small>Ticket #numeroTicket &nbsp;|&nbsp; Mesa: mesa &nbsp;|&nbsp; Cliente: nombre<br>Tipo: tipoVenta &nbsp;|&nbsp; Empleado: empleadoActivo &nbsp;|&nbsp; Total: $totalPagar</small></div>
+<div class="arr h28 "></div>
+<div class="sec-line"><span class="sec-text">factura del cliente</span></div>
+<div class="proc a-orange">🧾 Armar la factura: imprimirFactura( )<small>fecha y hora · mesa · cliente · tipo de venta · atendido por<br>FOR: producto, cantidad, precio unitario e importe<br>subtotal · desc. estudiantil · desc. volumen · base gravable · IVA 13% · total<br>método de pago · efectivo recibido y cambio</small></div>
+<div class="arr h28 "></div>
+<div class="file-box"><div class="fi">🧾</div><p>Guardar la factura en <strong>factura_&lt;ticket&gt;.txt</strong></p><small>un archivo por ticket (ej. factura_101.txt)<br>mismo contenido que se muestra en pantalla</small></div>
+<div class="arr h28 "></div>
+<div class="io-wrap"><svg width="560" height="54" viewBox="0 0 560 54"><polygon points="24,2 560,2 536,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="280.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">🖨️ Mostrar FACTURA en pantalla y "Factura guardada en factura_#.txt"</text></svg></div>
+<div class="arr h28 "></div>
+<div class="summary"><h4>🧾 Ejemplo de factura – Ticket #101</h4>
+<div class="srow"><span>Mesa 5 · Cliente: Ana · cliente (N/A)</span><span>24/11/2026</span></div>
+<div class="srow"><span>Hamburguesa × 2 @ $3.50</span><span>$7.00</span></div>
+<div class="srow"><span>Jugo × 1 @ $2.50</span><span>$2.50</span></div>
+<div class="srow"><span>Papas fritas × 1 @ $1.50</span><span>$1.50</span></div>
+<div class="srow"><span>Subtotal</span><span>$11.00</span></div>
+<div class="srow"><span>Desc. estudiantil (15%)</span><span style="color:var(--green)">–$1.65</span></div>
+<div class="srow"><span>Base gravable</span><span>$9.35</span></div>
+<div class="srow"><span>IVA (13%)</span><span style="color:var(--yellow)">+$1.22</span></div>
+<div class="srow"><span>TOTAL PAGADO</span><span>$10.57</span></div>
+<div class="srow"><span>Efectivo recibido $20.00</span><span>Cambio $9.43</span></div></div>
+<div class="arr h28 "></div>
+<div class="conn-wrap"><div class="conn">R</div><span>Volver a selección de rol (el ciclo while(true) continúa)</span></div>
+<div style="height:36px"></div>
+<div class="sec-line"><span class="sec-text">reporte del día — rol 3 (salir)</span></div>
+<div class="conn-wrap"><div class="conn">Z</div><span>Entrada desde la selección de rol (rol == 3)</span></div>
+<div class="arr h28 "></div>
+<div class="proc a-orange">🔢 Ciclo FOR: buscar el producto estrella<small>idxEstrella = 0<br>si unidadesVendidas[i] &gt; unidadesVendidas[idxEstrella] → idxEstrella = i</small></div>
+<div class="arr h28 "></div>
+<div class="diamond-wrap"><svg width="410" height="124" viewBox="0 0 410 124"><polygon points="205.0,4 406,62 205.0,120 4,62" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><text x="205.0" y="62" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="'Syne',sans-serif" font-size="13" font-weight="700">¿totalTransacciones &gt; 0?</text></svg></div>
+<div class="branch">
+<div class="branch-col" style="align-items:flex-end;padding-right:50px">
+<div class="blabel yes">SÍ</div>
+<div class="arr h28 green"></div>
+<div class="proc a-green" style="max-width:220px;font-size:12px;padding:10px 16px">productoEstrella = nombre + (unidades)</div>
+</div>
+<div class="branch-col" style="align-items:flex-start;padding-left:50px">
+<div class="blabel no">NO</div>
+<div class="arr h28 "></div>
+<div class="proc " style="max-width:220px;font-size:12px;padding:10px 16px">productoEstrella = "Sin ventas registradas"</div>
+</div>
+</div>
+<div class="arr h28 "></div>
+<div class="file-box"><div class="fi">📊</div><p>Guardar reporte en <strong>reporte_dia.txt</strong></p><small>Total de transacciones<br>Ventas totales del día &nbsp;|&nbsp; Producto más vendido</small></div>
+<div class="arr h28 "></div>
+<div class="io-wrap"><svg width="620" height="54" viewBox="0 0 620 54"><polygon points="24,2 620,2 596,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="310.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">🖥️ Mostrar REPORTE DEL DÍA: transacciones, ventas totales, producto estrella</text></svg></div>
+<div class="arr h28 "></div>
+<div class="io-wrap"><svg width="440" height="54" viewBox="0 0 440 54"><polygon points="24,2 440,2 416,52 0,52" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5" stroke-linejoin="round"/><text x="220.0" y="31" text-anchor="middle" dominant-baseline="central" fill="#c4b5fd" font-family="'Syne',sans-serif" font-size="13" font-weight="600">🖥️ "Reporte guardado en reporte_dia.txt. ¡Hasta pronto!"</text></svg></div>
+<div class="arr h36 "></div>
+<div class="terminal t-end">⏹&nbsp; FIN</div>
+</div></div>
+</body>
+</html>
