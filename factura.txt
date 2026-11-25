@@ -1,0 +1,21 @@
+========================================
+          FACTURA DEL RESTAURANTE
+========================================
+Ticket: #101
+Cliente: Ale
+Numero de mesa: 2
+Tipo de venta: empleado
+Empleado: Brandon
+----------------------------------------
+Hot Dog x2          $5.00
+Pizza x1          $5.00
+----------------------------------------
+Subtotal: $10.00
+Descuento estudiante: -$0.00
+Descuento volumen: -$0.00
+IVA (13%): $1.30
+TOTAL PAGADO: $11.30
+Metodo de pago: Tarjeta
+========================================
+       GRACIAS POR SU PREFERENCIA
+========================================

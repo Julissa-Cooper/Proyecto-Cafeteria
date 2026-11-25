@@ -1,0 +1,1 @@
+Ticket #101 | Cliente: Ale | Mesa: 2 | Tipo: empleado | Empleado: Brandon | Total: $11.30
