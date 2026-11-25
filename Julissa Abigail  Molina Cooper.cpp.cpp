@@ -428,3 +428,166 @@ int main() {
              << descVolumen << endl;
         cout << "IVA (13%): +$" << iva << endl;
         cout << "TOTAL A PAGAR: $" << totalPagar << endl;
+
+        // CONFIRMACION DEL PEDIDO
+
+        char confirma;
+
+        cout << "\nDesea confirmar su compra? (s/n): ";
+        cin >> confirma;
+
+        if (confirma != 's' && confirma != 'S') {
+
+            for (int i = 0; i < itemsCarrito; i++) {
+                stock[carritoProd[i]] += carritoCant[i];
+            }
+
+            cancelarPedido = true;
+
+            cout << "Pedido cancelado. Stock restaurado.\n";
+        }
+
+        if (cancelarPedido) {
+            continue;
+        }
+
+        // METODO DE PAGO
+
+        int metodoPago;
+
+        do {
+            cout << "\n--- METODO DE PAGO ---\n";
+            cout << "1. Efectivo\n";
+            cout << "2. Tarjeta\n";
+
+            metodoPago = leerEntero("Seleccione (1-2): ");
+
+        } while (metodoPago != 1 && metodoPago != 2);
+
+        double efectivo = 0;
+        double cambio = 0;
+
+        if (metodoPago == 1) {
+
+            do {
+                efectivo = leerDouble(
+                    "Ingrese el monto recibido: $"
+                );
+
+                if (efectivo < totalPagar) {
+                    cout << "Dinero insuficiente. Intente nuevamente.\n";
+                }
+
+            } while (efectivo < totalPagar);
+
+            cambio = efectivo - totalPagar;
+
+            cout << "Su cambio es: $" << cambio << endl;
+
+        } else {
+            cout << "Pago con tarjeta aprobado.\n";
+        }
+
+        // ACTUALIZAR VENTAS
+
+        ventasTotalesDia += totalPagar;
+        totalTransacciones++;
+
+        for (int i = 0; i < itemsCarrito; i++) {
+            unidadesVendidas[carritoProd[i]] += carritoCant[i];
+        }
+
+        // GENERAR FACTURA
+
+        generarFactura(
+            nombre,
+            mesa,
+            tipoVenta,
+            empleadoActivo,
+            itemsCarrito,
+            subtotal,
+            descEstudiante,
+            descVolumen,
+            iva,
+            totalPagar,
+            efectivo,
+            cambio,
+            metodoPago
+        );
+
+        // GUARDAR VENTA EN ARCHIVO
+
+        ofstream archVentas("ventas.txt", ios::app);
+
+        if (archVentas.is_open()) {
+
+            archVentas << fixed << setprecision(2);
+
+            archVentas << "Ticket #" << numeroTicket
+                       << " | Cliente: " << nombre
+                       << " | Mesa: " << mesa
+                       << " | Tipo: " << tipoVenta
+                       << " | Empleado: " << empleadoActivo
+                       << " | Total: $" << totalPagar << endl;
+
+            archVentas.close();
+        }
+
+        cout << "\nCompra realizada exitosamente.\n";
+    }
+
+    // REPORTE FINAL DEL DIA
+
+    int idxEstrella = 0;
+
+    for (int i = 1; i < NUM_PRODUCTOS; i++) {
+
+        if (unidadesVendidas[i] > unidadesVendidas[idxEstrella]) {
+            idxEstrella = i;
+        }
+    }
+
+    string productoEstrella =
+        (totalTransacciones > 0)
+        ? nombres[idxEstrella] + " (" +
+          to_string(unidadesVendidas[idxEstrella]) + " unidades)"
+        : "Sin ventas registradas";
+
+    ofstream archReporte("reporte_dia.txt");
+
+    if (archReporte.is_open()) {
+
+        archReporte << fixed << setprecision(2);
+
+        archReporte << "====================================\n";
+        archReporte << "         REPORTE DEL DIA\n";
+        archReporte << "====================================\n";
+
+        archReporte << "Total de transacciones: "
+                    << totalTransacciones << endl;
+
+        archReporte << "Ventas totales del dia: $"
+                    << ventasTotalesDia << endl;
+
+        archReporte << "Producto mas vendido: "
+                    << productoEstrella << endl;
+
+        archReporte.close();
+    }
+
+    cout << "\n========================================\n";
+    cout << "           REPORTE DEL DIA\n";
+    cout << "========================================\n";
+
+    cout << "Transacciones: " << totalTransacciones << endl;
+    cout << "Ventas totales: $" << ventasTotalesDia << endl;
+    cout << "Producto estrella: " << productoEstrella << endl;
+
+    cout << "\nReporte guardado en reporte_dia.txt\n";
+    cout << "Ventas guardadas en ventas.txt\n";
+    cout << "Facturas guardadas en factura.txt\n";
+
+    cout << "\nGracias por visitar nuestro restaurante.\n";
+
+    return 0;
+}
